@@ -18,6 +18,10 @@
         "nodemon": "^1.18.4"
     },
     "dependencies": {
+        "@babel/cli": "^7.2.3",
+        "@babel/core": "^7.1.2",
+        "@babel/node": "^7.0.0",
+        "@babel/preset-env": "^7.1.0",
         "apollo-server": "^2.1.0",
         "apollo-server-express": "^2.1.0",
         "bcrypt": "^3.0.2",
