@@ -18,7 +18,12 @@ app.use(cors({
     origin: 'https://battle-mages.herokuapp.com'
 }));
 
-app.options('*', cors())
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", '*');
+    res.header("Access-Control-Allow-Credentials", true);
+    next();
+});
+
 
 const getMe = async req => {
     const token = req.headers['x-token'];
