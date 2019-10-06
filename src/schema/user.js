@@ -11,9 +11,10 @@ export default gql`
     signUp(
       email: String!
       password: String!
+      rememberMe: Boolean!
     ): Token!
 
-    signIn(login: String!, password: String!): Token!
+    signIn(login: String!, password: String!, rememberMe: Boolean!): Token!
     deleteUser(id: ID!): Boolean!
   }
 
@@ -27,5 +28,6 @@ export default gql`
     email: String!
     role: String
     messages: [Message!]
+    saves: [Save!]
   }
 `;

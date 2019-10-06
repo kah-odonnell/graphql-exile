@@ -31,7 +31,7 @@ export default {
     Mutation: {
         signUp: async (
             parent,
-            { email, password },
+            { email, password, rememberMe },
             { models, secret },
         ) => {
             const user = await models.User.create({
@@ -39,12 +39,15 @@ export default {
                 password,
             });
 
-            return { token: createToken(user, secret, '30m') };
+            if (rememberMe)
+                return { token: createToken(user, secret, '31d') };
+            else
+                return { token: createToken(user, secret, '60m') };
         },
 
         signIn: async (
             parent,
-            { login, password },
+            { login, password, rememberMe },
             { models, secret },
         ) => {
             const user = await models.User.findByLogin(login);
@@ -61,7 +64,10 @@ export default {
                 throw new AuthenticationError('Invalid password.');
             }
 
-            return { token: createToken(user, secret, '30m') };
+            if (rememberMe)
+                return { token: createToken(user, secret, '31d') };
+            else
+                return { token: createToken(user, secret, '60m') };
         },
 
         deleteUser: combineResolvers(
@@ -77,6 +83,14 @@ export default {
     User: {
         messages: async (user, args, { models }) => {
             return await models.Message.findAll({
+                where: {
+                    userId: user.id,
+                },
+            });
+        },
+        
+        saves: async (user, args, { models }) => {
+            return await models.Save.findAll({
                 where: {
                     userId: user.id,
                 },

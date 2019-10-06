@@ -25,3 +25,17 @@ export const isMessageOwner = async (
 
   return skip;
 };
+
+export const isSaveOwner = async (
+	parent,
+	{ id },
+	{ models, me },
+  ) => {
+	const save = await models.Save.findById(id, { raw: true });
+  
+	if (save.userId !== me.id) {
+	  throw new ForbiddenError('Not authenticated as owner.');
+	}
+  
+	return skip;
+  };
