@@ -1,7 +1,7 @@
 const save = (sequelize, DataTypes) => {
     const Save = sequelize.define('save', {
       jsonData: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
         validate: { notEmpty: true },
       },
