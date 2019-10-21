@@ -10,7 +10,7 @@ const save = (sequelize, DataTypes) => {
     Save.associate = models => {
       Save.belongsTo(models.User);
     };
-  
+    
     return Save;
   };
   

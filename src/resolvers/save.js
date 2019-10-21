@@ -1,13 +1,25 @@
 import { combineResolvers } from 'graphql-resolvers';
-
 import { isAuthenticated, isSaveOwner } from './authorization';
+import { AuthenticationError, UserInputError } from 'apollo-server';
 
 export default {
   Query: {
-    saves: async (parent, args, { models }) => {
+    saves: async (parent, args, { models, me }) => {
+      const user = await models.User.findById(me.id);
+      if (!user) {
+        throw new AuthenticationError(
+            'You aren\'t logged in.',
+        );
+      }
       return await models.Save.findAll();
     },
-    getSave: async (parent, { id }, { models }) => {
+    getSave: async (parent, { id }, { models, me }) => {
+      const user = await models.User.findById(me.id);
+      if (!user) {
+        throw new AuthenticationError(
+            'You aren\'t logged in.',
+        );
+      }
       return await models.Save.findById(id);
     },
   },
@@ -18,8 +30,8 @@ export default {
       async (parent, { jsonData }, { models, me }) => {
         await models.Save.destroy({where: {userId: me.id}});
         return await models.Save.create({
-          jsonData,
           userId: me.id,
+          jsonData,
         });
       },
     ),

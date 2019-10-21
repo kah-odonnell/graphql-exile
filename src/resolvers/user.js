@@ -54,7 +54,7 @@ export default {
 
             if (!user) {
                 throw new UserInputError(
-                    'No user found with this login credentials.',
+                    'No user found with these login credentials.',
                 );
             }
 

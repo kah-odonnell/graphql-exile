@@ -59,7 +59,7 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app, path: '/graphql' });
 
-const eraseDatabaseOnSync = true;
+const eraseDatabaseOnSync = (process.env.PORT) ? false : true;
 
 const port = process.env.PORT || 8000;
 
