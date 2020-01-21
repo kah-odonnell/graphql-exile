@@ -24,6 +24,7 @@ const models = {
     User: sequelize.import('./user'),
     Message: sequelize.import('./message'),
     Save: sequelize.import('./save'),
+    Player: sequelize.import('./player')
 };
 
 Object.keys(models).forEach(key => {

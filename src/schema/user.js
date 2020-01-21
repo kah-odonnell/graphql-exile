@@ -29,5 +29,6 @@ export default gql`
     role: String
     messages: [Message!]
     saves: [Save!]
+    players: [Player!]
   }
 `;

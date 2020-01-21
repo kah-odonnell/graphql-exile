@@ -16,5 +16,5 @@ export default gql`
     jsonData: String!
     createdAt: Date!
     user: User!
-  }
+  }  
 `;

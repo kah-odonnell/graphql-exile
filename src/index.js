@@ -11,6 +11,7 @@ import {
 import schema from './schema';
 import resolvers from './resolvers';
 import models, { sequelize } from './models';
+import http from 'http';
 
 const app = express();
 
@@ -18,7 +19,7 @@ app.use(cors());
 
 
 const getMe = async req => {
-    const token = req.headers['x-token'];
+    const token = (req.headers) ? req.headers['x-token'] : req['x-token'];
 
     if (token) {
         try {
@@ -46,18 +47,49 @@ const server = new ApolloServer({
             message,
         };
     },
-    context: async ({ req }) => {
-        const me = await getMe(req);
-
-        return {
-            models,
-            me,
-            secret: process.env.SECRET,
-        };
-    },
+	context: async ({ req, connection }) => {
+	  if (connection) {
+		return {
+		  models,
+		};
+	  }
+	  if (req) {
+		const me = await getMe(req);
+		return {
+		  models,
+		  me,
+		  secret: process.env.SECRET,
+		};
+	  }
+    }, 
+    subscriptions: {
+        onConnect: (connectionParams, webSocket, context) => {
+            /*
+            if (connectionParams["x-token"]) {
+              return getMe({"x-token": connectionParams["x-token"]})
+                .then(player => {
+                    console.log("player " + player.id + " connected");
+                    return {
+                        currentPlayer: player,
+                    };
+                });
+            }
+            */
+        },
+        onDisconnect: (webSocket, context) => {
+            /*
+            if (context.currentPlayer) {
+                console.log("disconnect: " + context.currentPlayer)
+                models.Player.destroy({where: {id: context.currentPlayer.id}});
+            }
+            */
+        },
+    }
 });
 
 server.applyMiddleware({ app, path: '/graphql' });
+const httpServer = http.createServer(app);
+server.installSubscriptionHandlers(httpServer);
 
 const eraseDatabaseOnSync = (process.env.PORT) ? false : true;
 
@@ -68,7 +100,7 @@ sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
         createUsersWithMessages(new Date());
     }
 
-    app.listen({ port }, () => {
+    httpServer.listen({ port }, () => {
         console.log(`Apollo Server on http://localhost:${port}/graphql`);
     });
 });

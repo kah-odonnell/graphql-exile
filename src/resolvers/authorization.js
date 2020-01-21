@@ -39,3 +39,18 @@ export const isSaveOwner = async (
   
 	return skip;
   };
+
+
+export const isPlayerOwner = async (
+    parent,
+    { id },
+    { models, me },
+  ) => {
+    const player = await models.Player.findById(id, { raw: true });
+  
+    if (player.userId !== me.id) {
+      throw new ForbiddenError('Not authenticated as owner.');
+    }
+  
+    return skip;
+  };
