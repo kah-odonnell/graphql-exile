@@ -11,7 +11,7 @@ export default {
             'You aren\'t logged in.',
         );
       }
-      return await models.Save.findAll();
+      return await models.Save.findAll({where: {userId: me.id}});
     },
     getSave: async (parent, { id }, { models, me }) => {
       const user = await models.User.findById(me.id);
