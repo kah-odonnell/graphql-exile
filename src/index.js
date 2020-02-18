@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import cors from 'cors';
+import cron from 'node-cron'
+import pubsub, { EVENTS } from './subscription';
 import uuidv4 from 'uuid/v4';
 import jwt from 'jsonwebtoken';
 import express from 'express';
@@ -17,10 +19,19 @@ const app = express();
 
 app.use(cors());
 
+cron.schedule("* * * * *", function() {
+        const date = new Date()
+        const players = models.Player.findAll({where: {createdAt: {$lte: date.setSeconds(date.getSeconds() - 120)}}});
+        players.map(player => {
+            pubsub.publish(EVENTS.PLAYER.DISCONNECTED, {
+                playerDisconnected: { player },
+            });
+            player.destroy();
+        })
+  });
 
 const getMe = async req => {
     const token = (req.headers) ? req.headers['x-token'] : req['x-token'];
-
     if (token) {
         try {
             return await jwt.verify(token, process.env.SECRET);
@@ -63,26 +74,32 @@ const server = new ApolloServer({
 	  }
     }, 
     subscriptions: {
-        onConnect: (connectionParams, webSocket, context) => {
-            /*
+        onConnect: async (connectionParams, webSocket, context) => {
             if (connectionParams["x-token"]) {
-              return getMe({"x-token": connectionParams["x-token"]})
-                .then(player => {
-                    console.log("player " + player.id + " connected");
-                    return {
-                        currentPlayer: player,
-                    };
-                });
+                let retData = {}
+                await getMe({"x-token": connectionParams["x-token"]})
+                    .then(user => {
+                        console.log("user " + user.id + " connected");
+                        retData = {
+                            currentUser: user,
+                        };
+                    }).catch(reason => {
+                        
+                    });
+                return retData;
             }
-            */
         },
-        onDisconnect: (webSocket, context) => {
-            /*
-            if (context.currentPlayer) {
-                console.log("disconnect: " + context.currentPlayer)
-                models.Player.destroy({where: {id: context.currentPlayer.id}});
+        onDisconnect: async (webSocket, context) => {
+            const initContext = await context.initPromise;
+            if (initContext && initContext.currentUser) {
+                const players = models.Player.findAll({where: {userId: initContext.currentUser.id}});
+                players.map(player => {
+                    pubsub.publish(EVENTS.PLAYER.DISCONNECTED, {
+                        playerDisconnected: { player },
+                    });
+                    player.destroy();
+                })
             }
-            */
         },
     }
 });

@@ -47,6 +47,9 @@ export const isPlayerOwner = async (
     { models, me },
   ) => {
     const player = await models.Player.findById(id, { raw: true });
+    if (!player) {
+      throw new ForbiddenError('No player found with that id.');
+    }
   
     if (player.userId !== me.id) {
       throw new ForbiddenError('Not authenticated as owner.');

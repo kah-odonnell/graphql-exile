@@ -9,7 +9,7 @@ export default gql`
   extend type Mutation {
     createPlayer(jsonData: String!): Player!
     updatePlayer(jsonData: String!): Player!
-    deletePlayer(id: ID!): Boolean!
+    deletePlayer: Boolean!
   }
 
   type Player {
@@ -32,6 +32,7 @@ export default gql`
   extend type Subscription {
     playerConnected: PlayerConnected!
     playerUpdated: PlayerUpdated!
+    playerDisconnected: PlayerDisconnected!
   }
   
   type PlayerConnected {
@@ -39,6 +40,10 @@ export default gql`
   }
 
   type PlayerUpdated {
+    player: Player!
+  }
+  
+  type PlayerDisconnected {
     player: Player!
   }
 `;

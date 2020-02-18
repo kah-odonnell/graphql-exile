@@ -67,13 +67,32 @@ export default {
     updatePlayer: combineResolvers(
       isAuthenticated,
       async (parent, { jsonData }, { models, me }) => {
+        let doUpdate = false;
+        let player = null;
         const date = new Date();
-        const player = await models.Player.build({
-          jsonData,
-          userId: me.id,
-          id: "update",
-          createdAt: date.setSeconds(date.getSeconds() + 1)
-        });
+        const playerInstances = await models.Player.findAll({where: {userId: me.id}});
+        if (playerInstances.length === 0) {
+          player = await models.Player.create({
+            jsonData,
+            userId: me.id,
+          });
+        }
+        else if (playerInstances[0] && playerInstances[0].createdAt < date.setSeconds(date.getSeconds() - 60)) {
+          doUpdate = true;
+        }
+        if (doUpdate === false && player === null) {
+          player = await models.Player.build({
+            jsonData,
+            userId: me.id,
+            id: "update",
+            createdAt: date.setSeconds(date.getSeconds() + 1)
+          });
+        } 
+        else if (doUpdate === true && player === null) {
+          player = playerInstances[0]
+          player.createdAt = date.setSeconds(date.getSeconds() + 1);
+          player.save();
+        }
 
         pubsub.publish(EVENTS.PLAYER.UPDATED, {
           playerUpdated: { player },
@@ -85,9 +104,15 @@ export default {
 
     deletePlayer: combineResolvers(
       isAuthenticated,
-      isPlayerOwner,
-      async (parent, { id }, { models }) => {
-        return await models.Player.destroy({ where: { id } });
+      async (parent, {}, { models, me }) => {
+        const players = await models.Player.findAll({where: {userId: me.id}});
+        players.map(player => {
+            pubsub.publish(EVENTS.PLAYER.DISCONNECTED, {
+                playerDisconnected: { player },
+            });
+            player.destroy();
+        })
+        return true;
       },
     ),
   },
@@ -104,6 +129,9 @@ export default {
     },
     playerUpdated: {
       subscribe: () => pubsub.asyncIterator(EVENTS.PLAYER.UPDATED),
+    },
+    playerDisconnected: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.PLAYER.DISCONNECTED),
     },
   },
 };
