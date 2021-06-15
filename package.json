@@ -37,7 +37,7 @@
         "node-cron": "^2.0.3",
         "pg": "^7.12.1",
         "pg-hstore": "^2.3.3",
-        "sequelize": "^4.41.0",
+        "sequelize": "^5.15.1",
         "sqlite3": "^4.1.0",
         "subscriptions-transport-ws": "^0.9.16",
         "uuid": "^3.3.2"
