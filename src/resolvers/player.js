@@ -42,7 +42,7 @@ export default {
 			};
 		},
 		player: async (parent, { id }, { models }) => {
-			return await models.Player.findById(id);
+			return await models.Player.findByPk(id);
 		},
   },
 
@@ -119,7 +119,7 @@ export default {
 
   Player: {
     user: async (player, args, { models }) => {
-      return await models.User.findById(player.userId);
+      return await models.User.findByPk(player.userId);
     },
   },
 

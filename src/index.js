@@ -84,7 +84,7 @@ const server = new ApolloServer({
                             currentUser: user,
                         };
                     }).catch(reason => {
-                        
+                        retData = reason
                     });
                 return retData;
             }
@@ -126,8 +126,8 @@ const createUsersWithMessages = async date => {
     await models.User.create(
         {
             username: 'rwieruch',
-            email: 'hello@robin.com',
-            password: 'rwieruch',
+            email: 'test@gmail.com',
+            password: 'password',
             role: 'ADMIN',
             messages: [
                 {

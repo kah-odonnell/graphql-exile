@@ -5,7 +5,7 @@ import { AuthenticationError, UserInputError } from 'apollo-server';
 export default {
   Query: {
     saves: async (parent, args, { models, me }) => {
-      const user = await models.User.findById(me.id);
+      const user = await models.User.findByPk(me.id);
       if (!user) {
         throw new AuthenticationError(
             'You aren\'t logged in.',
@@ -14,13 +14,13 @@ export default {
       return await models.Save.findAll({where: {userId: me.id}});
     },
     getSave: async (parent, { id }, { models, me }) => {
-      const user = await models.User.findById(me.id);
+      const user = await models.User.findByPk(me.id);
       if (!user) {
         throw new AuthenticationError(
             'You aren\'t logged in.',
         );
       }
-      return await models.Save.findById(id);
+      return await models.Save.findByPk(id);
     },
   },
 
@@ -47,7 +47,7 @@ export default {
 
   Save: {
     user: async (save, args, { models }) => {
-      return await models.User.findById(save.userId);
+      return await models.User.findByPk(save.userId);
     },
   },
 };
