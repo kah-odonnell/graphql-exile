@@ -1,9 +1,10 @@
-import { GraphQLDateTime } from 'graphql-iso-date';
+import pkg from 'graphql-iso-date';
+import userResolvers from './user.js';
+import messageResolvers from './message.js';
+import saveResolvers from './save.js';
+import playerResolvers from './player.js';
 
-import userResolvers from './user';
-import messageResolvers from './message';
-import saveResolvers from './save';
-import playerResolvers from './player';
+const { GraphQLDateTime } = pkg;
 
 const customScalarResolver = {
   Date: GraphQLDateTime,

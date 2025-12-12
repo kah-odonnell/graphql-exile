@@ -1,5 +1,8 @@
-import Sequelize from 'sequelize';
-
+import { Sequelize } from 'sequelize';
+import user from './user.js' 
+import message from './message.js' 
+import save from './save.js' 
+import player from './player.js' 
 
 let sequelize = null;
 
@@ -21,10 +24,10 @@ if (process.env.DATABASE_URL) {
 }
 
 const models = {
-    User: sequelize.import('./user'),
-    Message: sequelize.import('./message'),
-    Save: sequelize.import('./save'),
-    Player: sequelize.import('./player')
+    User: user(sequelize, Sequelize),
+    Message: message(sequelize, Sequelize),
+    Save: save(sequelize, Sequelize),
+    Player: player(sequelize, Sequelize)
 };
 
 Object.keys(models).forEach(key => {

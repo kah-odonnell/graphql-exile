@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { combineResolvers } from 'graphql-resolvers';
-import { AuthenticationError, UserInputError } from 'apollo-server';
+import { GraphQLError } from 'graphql';
+import models, { sequelize } from '../models/index.js';
 
-import { isAdmin } from './authorization';
+import { isAdmin } from './authorization.js';
 
 const createToken = async (user, secret, expiresIn) => {
     const { id, email, username, role } = user;
@@ -45,29 +46,25 @@ export default {
                 return { token: createToken(user, secret, '60m') };
         },
 
-        signIn: async (
-            parent,
-            { login, password, rememberMe },
-            { models, secret },
-        ) => {
-            const user = await models.User.findByLogin(login);
+        signIn: async (parent, args, context, info) => {
+            const user = await models.User.findByLogin(args.login);
 
             if (!user) {
-                throw new UserInputError(
+                throw new GraphQLError(
                     'No user found with these login credentials.',
                 );
             }
 
-            const isValid = await user.validatePassword(password);
+            const isValid = await user.validatePassword(args.password);
 
             if (!isValid) {
-                throw new AuthenticationError('Invalid password.');
+                throw new GraphQLError('Invalid password.');
             }
 
-            if (rememberMe)
-                return { token: createToken(user, secret, '31d') };
+            if (args.rememberMe)
+                return { token: createToken(user, context.secret, '31d') };
             else
-                return { token: createToken(user, secret, '60m') };
+                return { token: createToken(user, context.secret, '60m') };
         },
 
         deleteUser: combineResolvers(

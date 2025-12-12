@@ -1,13 +1,14 @@
 import { combineResolvers } from 'graphql-resolvers';
-import { isAuthenticated, isSaveOwner } from './authorization';
-import { AuthenticationError, UserInputError } from 'apollo-server';
+import { isAuthenticated, isSaveOwner } from './authorization.js';
+import { GraphQLError } from 'graphql';
+
 
 export default {
   Query: {
     saves: async (parent, args, { models, me }) => {
       const user = await models.User.findByPk(me.id);
       if (!user) {
-        throw new AuthenticationError(
+        throw new GraphQLError(
             'You aren\'t logged in.',
         );
       }
@@ -16,7 +17,7 @@ export default {
     getSave: async (parent, { id }, { models, me }) => {
       const user = await models.User.findByPk(me.id);
       if (!user) {
-        throw new AuthenticationError(
+        throw new GraphQLError(
             'You aren\'t logged in.',
         );
       }

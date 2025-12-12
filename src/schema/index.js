@@ -1,9 +1,9 @@
-import { gql } from 'apollo-server-express';
+import { gql } from '@apollo/client';
 
-import userSchema from './user';
-import messageSchema from './message';
-import saveSchema from './save';
-import playerSchema from './player';
+import userSchema from './user.js';
+import messageSchema from './message.js';
+import saveSchema from './save.js';
+import playerSchema from './player.js';
 
 const linkSchema = gql`
   scalar Date

@@ -1,33 +1,33 @@
 import 'dotenv/config';
 import cors from 'cors';
 import cron from 'node-cron'
-import pubsub, { EVENTS } from './subscription';
-import uuidv4 from 'uuid/v4';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/use/ws';
+import pubsub, { EVENTS } from './subscription/index.js';
 import jwt from 'jsonwebtoken';
 import express from 'express';
+import { GraphQLError } from 'graphql';
 import {
     ApolloServer,
-    AuthenticationError,
-} from 'apollo-server-express';
-
-import schema from './schema';
-import resolvers from './resolvers';
-import models, { sequelize } from './models';
+} from '@apollo/server';
+import schema from './schema/index.js';
+import resolvers from './resolvers/index.js';
+import models, { sequelize } from './models/index.js';
 import http from 'http';
+import { expressMiddleware } from '@as-integrations/express5';
 
 const app = express();
 
-app.use(cors());
-
 cron.schedule("* * * * *", function() {
         const date = new Date()
-        const players = models.Player.findAll({where: {createdAt: {$lte: date.setSeconds(date.getSeconds() - 120)}}});
-        players.map(player => {
-            pubsub.publish(EVENTS.PLAYER.DISCONNECTED, {
-                playerDisconnected: { player },
-            });
-            player.destroy();
-        })
+        const players = models.Player.findAll({where: {createdAt: {$lte: date.setSeconds(date.getSeconds() - 120)}}}).then((players) => {
+            players.map(player => {
+                pubsub.publish(EVENTS.PLAYER.DISCONNECTED, {
+                    playerDisconnected: { player },
+                });
+                player.destroy();
+            })
+        });
   });
 
 const getMe = async req => {
@@ -36,7 +36,7 @@ const getMe = async req => {
         try {
             return await jwt.verify(token, process.env.SECRET);
         } catch (e) {
-            throw new AuthenticationError(
+            throw new GraphQLError(
                 'Your session expired. Sign in again.',
             );
         }
@@ -104,9 +104,35 @@ const server = new ApolloServer({
     }
 });
 
-server.applyMiddleware({ app, path: '/graphql' });
+await server.start();
+app.use('/graphql',
+    cors(),
+    express.json(),
+    expressMiddleware(server, {
+        context: async ({ req }) => {
+		const me = await getMe(req);
+		return {
+		  models,
+		  me,
+		  secret: process.env.SECRET,
+		};
+	  }
+    })
+)
 const httpServer = http.createServer(app);
-server.installSubscriptionHandlers(httpServer);
+
+// Creating the WebSocket subscription server
+const wsServer = new WebSocketServer({
+    // This is the `httpServer` returned by createServer(app);
+    server: httpServer,
+    // Pass a different path here if your ApolloServer serves at
+    // a different path.
+    path: "/graphql",
+});
+
+// Passing in an instance of a GraphQLSchema and
+// telling the WebSocketServer to start listening
+const serverCleanup = useServer({ schema }, wsServer);
 
 const eraseDatabaseOnSync = (process.env.PORT) ? false : true;
 
